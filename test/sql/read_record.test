@@ -1,0 +1,18 @@
+# name: test/sql/read_record.test
+# description: test read_record extension
+# group: [read_record]
+
+# Before we load the extension, this will fail
+statement error
+SELECT read_record('Sam');
+----
+Catalog Error: Scalar Function with name read_record does not exist!
+
+# Require statement will ensure this test is run with this extension loaded
+require read_record
+
+# Confirm the extension works
+query I
+SELECT read_record('Sam');
+----
+Read_record Sam 🐥
