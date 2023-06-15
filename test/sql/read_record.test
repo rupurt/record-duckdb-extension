@@ -9,10 +9,10 @@ SELECT read_record('Sam');
 Catalog Error: Scalar Function with name read_record does not exist!
 
 # Require statement will ensure this test is run with this extension loaded
-require read_record
+require record
 
 # Confirm the extension works
 query I
 SELECT read_record('Sam');
 ----
-Read_record Sam 🐥
+TODO: read_record Sam 🐥

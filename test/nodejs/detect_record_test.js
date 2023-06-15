@@ -1,7 +1,7 @@
 var duckdb = require('../../duckdb/tools/nodejs');
 var assert = require('assert');
 
-describe(`read_record`, () => {
+describe(`detect_record`, () => {
     let db;
     let conn;
     before((done) => {
@@ -11,9 +11,9 @@ describe(`read_record`, () => {
     });
 
     it('function should return expected constant', function (done) {
-        db.all("SELECT read_record('Sam') as value;", function (err, res) {
+        db.all("SELECT detect_record('Sam') as value;", function (err, res) {
             if (err) throw err;
-            assert.deepEqual(res, [{value: "TODO: read_record Sam 🐥"}]);
+            assert.deepEqual(res, [{value: "TODO: detect_record Sam 🐥"}]);
             done();
         });
     });
