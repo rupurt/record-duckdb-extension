@@ -1,6 +1,54 @@
-# DuckDB Record
+# Record DuckDB Extension
 
-A DuckDB extension to read/write records from binary or text encoded files
+A DuckDB extension to read, write & analyze records from binary or text encoded files
+
+### record_analyze
+
+```duckdb
+D select * from record_analyze('./input');
+┌───────────────┐
+│    result     │
+│    varchar    │
+├───────────────┤
+│ Quack Jane 🐥 │
+└───────────────┘
+```
+
+### record_detect
+
+```duckdb
+D select * from record_detect('./input');
+┌───────────────┐
+│    result     │
+│    varchar    │
+├───────────────┤
+│ Quack Jane 🐥 │
+└───────────────┘
+```
+
+### record_scan
+
+```duckdb
+D select * from record_scan('./input', '{ "name": "PIC(X(20))", "age": "PIC(9(3)), "salary": "PIC(9(10)V99)" }');
+┌───────────────┐
+│    result     │
+│    varchar    │
+├───────────────┤
+│ Quack Jane 🐥 │
+└───────────────┘
+```
+
+### record_write
+
+```duckdb
+D select * from record_write('./input', '{ "name": "Scrooge McDuck", "age": 40, "salary": 1000000.13 }');
+┌───────────────┐
+│    result     │
+│    varchar    │
+├───────────────┤
+│ Quack Jane 🐥 │
+└───────────────┘
+```
 
 ## Development
 
@@ -14,54 +62,6 @@ Or... use the experimental `nix` flake and `zig` builder within this repo
 
 ```sh
 nix run .#build-fast
-```
-
-### analyze_record
-
-```duckdb
-D select * from analyze_record('./input');
-┌───────────────┐
-│    result     │
-│    varchar    │
-├───────────────┤
-│ Quack Jane 🐥 │
-└───────────────┘
-```
-
-### detect_record
-
-```duckdb
-D select * from detect_record('./input');
-┌───────────────┐
-│    result     │
-│    varchar    │
-├───────────────┤
-│ Quack Jane 🐥 │
-└───────────────┘
-```
-
-### read_record
-
-```duckdb
-D select * from read_record('./input', '{ "name": "PIC(X(20))", "age": "PIC(9(3)), "salary": "PIC(9(10)V99)" }');
-┌───────────────┐
-│    result     │
-│    varchar    │
-├───────────────┤
-│ Quack Jane 🐥 │
-└───────────────┘
-```
-
-### write_record
-
-```duckdb
-D select * from write_record('./input', '{ "name": "Scrooge McDuck", "age": 40, "salary": 1000000.13 }');
-┌───────────────┐
-│    result     │
-│    varchar    │
-├───────────────┤
-│ Quack Jane 🐥 │
-└───────────────┘
 ```
 
 ## Test
