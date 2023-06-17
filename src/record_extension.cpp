@@ -19,6 +19,7 @@
 
 namespace duckdb {
 static void LoadInternal(DatabaseInstance &instance) {
+  // scalar functions
   auto record_detect_scalar_function =
       ScalarFunction("record_detect", {LogicalType::VARCHAR},
                      LogicalType::VARCHAR, RecordDetectScalarFun);
