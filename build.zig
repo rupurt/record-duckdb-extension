@@ -199,18 +199,19 @@ pub fn build(b: *std.Build) void {
     // duckdb_mbedtls.strip = true;
     b.installArtifact(duckdb_mbedtls);
 
-    const duckdb_sqlite3 = b.addStaticLibrary(.{
-        .name = "duckdb_sqlite3",
-        .target = target,
-        .optimize = optimize,
-    });
-    duckdb_sqlite3.addCSourceFiles(&.{
-        "duckdb/third_party/sqlite/sqlite3.c",
-    }, &.{});
-    duckdb_sqlite3.linkLibC();
-    duckdb_sqlite3.force_pic = true;
-    // duckdb_sqlite3.strip = true;
-    b.installArtifact(duckdb_sqlite3);
+    // const duckdb_sqlite3 = b.addStaticLibrary(.{
+    //     .name = "duckdb_sqlite3",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // duckdb_sqlite3.addCSourceFiles(&.{
+    //     "duckdb/third_party/sqlite/sqlite3.c",
+    // }, &.{});
+    // // duckdb_sqlite3.addIncludePath("duckdb/third_party/sqlite/include");
+    // // duckdb_sqlite3.linkLibC();
+    // duckdb_sqlite3.force_pic = true;
+    // // duckdb_sqlite3.strip = true;
+    // b.installArtifact(duckdb_sqlite3);
 
     // ==============================
     // Extensions
@@ -1461,56 +1462,159 @@ pub fn build(b: *std.Build) void {
     // ==============================
     // Tools
     // ==============================
-    const sqlite3_api_wrapper = b.addStaticLibrary(.{
-        .name = "sqlite3_api_wrapper",
+    // const sqlite3_api_wrapper = b.addStaticLibrary(.{
+    //     .name = "sqlite3_api_wrapper",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // sqlite3_api_wrapper.addCSourceFiles(&.{
+    //     "duckdb/tools/sqlite3_api_wrapper/sqlite3_api_wrapper.cpp",
+    // }, &.{});
+    // sqlite3_api_wrapper.addIncludePath("duckdb/tools/sqlite3_api_wrapper/include");
+    // sqlite3_api_wrapper.addIncludePath("duckdb/tools/sqlite3_api_wrapper/sqlite3_udf_api/include");
+    // sqlite3_api_wrapper.addIncludePath("duckdb/third_party/utf8proc/include");
+    // sqlite3_api_wrapper.addIncludePath("duckdb/src/include");
+    // sqlite3_api_wrapper.linkLibCpp();
+    // sqlite3_api_wrapper.force_pic = true;
+    // // sqlite3_api_wrapper.strip = true;
+    // b.installArtifact(sqlite3_api_wrapper);
+
+// include_directories(include)
+// add_subdirectory(sqlite3)
+//
+// include_directories(sqlite3_udf_api/include)
+// add_subdirectory(sqlite3_udf_api)
+//
+// add_extension_definitions()
+// add_definitions(-DSQLITE_SHELL_IS_UTF8)
+// add_definitions(-DUSE_DUCKDB_SHELL_WRAPPER)
+//
+// include_directories(../../third_party/utf8proc/include)
+//
+// if(NOT BUILD_AUTOCOMPLETE_EXTENSION AND NOT DISABLE_BUILTIN_EXTENSIONS)
+//   include_directories(../../extension/autocomplete/include)
+//   set(ALL_OBJECT_FILES
+//       ${ALL_OBJECT_FILES}
+//       ../../extension/autocomplete/sql_auto_complete-extension.cpp)
+//   add_definitions(-DSHELL_INLINE_AUTOCOMPLETE)
+// endif()
+// set(SQLITE_API_WRAPPER_FILES sqlite3_api_wrapper.cpp ${ALL_OBJECT_FILES})
+//
+// add_library(sqlite3_api_wrapper_static STATIC ${SQLITE_API_WRAPPER_FILES})
+// target_link_libraries(sqlite3_api_wrapper_static duckdb_static)
+// if(NOT AMALGAMATION_BUILD)
+//   target_link_libraries(sqlite3_api_wrapper_static duckdb_utf8proc)
+// endif()
+// link_threads(sqlite3_api_wrapper_static)
+//
+// if(NOT WIN32)
+//   add_library(sqlite3_api_wrapper SHARED ${SQLITE_API_WRAPPER_FILES})
+//   target_link_libraries(sqlite3_api_wrapper duckdb ${DUCKDB_EXTRA_LINK_FLAGS})
+//   link_threads(sqlite3_api_wrapper)
+// endif()
+//
+// include_directories(../../third_party/catch)
+//
+// include_directories(test/include)
+// add_subdirectory(test)
+//
+// add_executable(test_sqlite3_api_wrapper ${SQLITE_TEST_FILES})
+// if(WIN32)
+//   target_link_libraries(test_sqlite3_api_wrapper sqlite3_api_wrapper_static)
+// else()
+//   target_link_libraries(test_sqlite3_api_wrapper sqlite3_api_wrapper)
+// endif()
+    const sqlite3_api_wrapper_static = b.addStaticLibrary(.{
+        .name = "sqlite3_api_wrapper_static",
         .target = target,
         .optimize = optimize,
     });
-    sqlite3_api_wrapper.addCSourceFiles(&.{
+    sqlite3_api_wrapper_static.addCSourceFiles(&.{
         "duckdb/tools/sqlite3_api_wrapper/sqlite3_api_wrapper.cpp",
+        // TODO:
+        // - only include for windows build
+        // "duckdb/tools/sqlite3_api_wrapper/sqlite3/os_win.c",
+        "duckdb/tools/sqlite3_api_wrapper/sqlite3/printf.c",
+        "duckdb/tools/sqlite3_api_wrapper/sqlite3/strglob.c",
+        "duckdb/tools/sqlite3_api_wrapper/sqlite3_udf_api/cast_sqlite.cpp",
+        "duckdb/tools/sqlite3_api_wrapper/sqlite3_udf_api/sqlite3_udf_wrapper.cpp",
     }, &.{});
-    sqlite3_api_wrapper.addIncludePath("duckdb/tools/sqlite3_api_wrapper/include");
-    sqlite3_api_wrapper.addIncludePath("duckdb/tools/sqlite3_api_wrapper/sqlite3_udf_api/include");
-    sqlite3_api_wrapper.addIncludePath("duckdb/third_party/utf8proc/include");
-    sqlite3_api_wrapper.addIncludePath("duckdb/src/include");
-    sqlite3_api_wrapper.linkLibCpp();
-    sqlite3_api_wrapper.force_pic = true;
+    sqlite3_api_wrapper_static.addIncludePath("duckdb/tools/sqlite3_api_wrapper/include");
+    sqlite3_api_wrapper_static.addIncludePath("duckdb/tools/sqlite3_api_wrapper/sqlite3_udf_api/include");
+    sqlite3_api_wrapper_static.addIncludePath("duckdb/third_party/utf8proc/include");
+    sqlite3_api_wrapper_static.addIncludePath("duckdb/src/include");
+    sqlite3_api_wrapper_static.defineCMacro("USE_DUCKDB_SHELL_WRAPPER", null);
+    // sqlite3_api_wrapper_static.linkLibrary(duckdb_sqlite3);
+    sqlite3_api_wrapper_static.linkLibrary(duckdb_static);
+    sqlite3_api_wrapper_static.linkLibCpp();
+    sqlite3_api_wrapper_static.force_pic = true;
     // sqlite3_api_wrapper.strip = true;
-    b.installArtifact(sqlite3_api_wrapper);
+    b.installArtifact(sqlite3_api_wrapper_static);
 
-    // // ==============================
-    // // Shell
-    // // ==============================
-    // if (want_build_shell) {
-    //     const shell = b.addExecutable(.{
-    //         .name = "duckdb",
-    //         .target = target,
-    //         .optimize = optimize,
-    //     });
-    //     shell.addCSourceFiles(&.{
-    //         "duckdb/tools/shell/shell.c",
-    //     }, &.{});
-    //     shell.addIncludePath("duckdb/tools/shell/include");
-    //     shell.addIncludePath("duckdb/tools/sqlite3_api_wrapper/include");
-    //     // shell.defineCMacro("DUCKDB_MAIN_LIBRARY",null);
-    //     // shell.defineCMacro("DUCKDB",null);
-    //     // shell.linkLibrary(duckdb_fastpforlib);
-    //     // shell.linkLibrary(duckdb_fmt);
-    //     // shell.linkLibrary(duckdb_fsst);
-    //     // shell.linkLibrary(duckdb_hyperloglog);
-    //     // shell.linkLibrary(duckdb_mbedtls);
-    //     // shell.linkLibrary(duckdb_miniz);
-    //     // shell.linkLibrary(duckdb_pg_query);
-    //     // shell.linkLibrary(duckdb_re2);
-    //     shell.linkLibrary(sqlite3_api_wrapper);
-    //     // shell.linkLibrary(duckdb_static);
-    //     // shell.linkLibrary(duckdb_utf8proc);
-    //     // shell.linkLibrary(parquet_extension);
-    //     // shell.linkLibrary(httpfs_extension);
-    //     // shell.linkLibrary(icu_extension);
-    //     // shell.linkLibC();
-    //     b.installArtifact(shell);
-    // }
+// add_definitions(-DSQLITE_OMIT_LOAD_EXTENSION=1)
+//
+// set(SHELL_SOURCES shell.c)
+// if(NOT WIN32)
+//   add_definitions(-DHAVE_LINENOISE=1)
+//   set(SHELL_SOURCES ${SHELL_SOURCES} linenoise.cpp)
+//   include_directories(../../third_party/utf8proc/include)
+// endif()
+//
+// option(STATIC_LIBCPP "Statically link CLI to libc++" FALSE)
+//
+// include_directories(include)
+// include_directories(../sqlite3_api_wrapper/include)
+// add_executable(shell ${SHELL_SOURCES})
+// target_link_libraries(shell sqlite3_api_wrapper_static
+//                       ${DUCKDB_EXTRA_LINK_FLAGS})
+// link_threads(shell)
+// if(STATIC_LIBCPP)
+//   message("Statically linking CLI")
+//   target_link_libraries(shell -static-libstdc++ -static-libgcc)
+// endif()
+//
+// if(NOT AMALGAMATION_BUILD AND NOT WIN32)
+//   target_link_libraries(shell duckdb_utf8proc)
+// endif()
+//
+// set_target_properties(shell PROPERTIES OUTPUT_NAME duckdb)
+// set_target_properties(shell PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+//                                        ${PROJECT_BINARY_DIR})
+//
+// install(TARGETS shell RUNTIME DESTINATION "${INSTALL_BIN_DIR}")
+    // ==============================
+    // Shell
+    // ==============================
+    if (want_build_shell) {
+        const shell = b.addExecutable(.{
+            .name = "duckdb",
+            .target = target,
+            .optimize = optimize,
+        });
+        shell.addCSourceFiles(&.{
+            "duckdb/tools/shell/shell.c",
+        }, &.{});
+        shell.addIncludePath("duckdb/tools/shell/include");
+        shell.addIncludePath("duckdb/tools/sqlite3_api_wrapper/include");
+        // shell.defineCMacro("DUCKDB_MAIN_LIBRARY",null);
+        // shell.defineCMacro("DUCKDB",null);
+        // shell.linkLibrary(duckdb_fastpforlib);
+        // shell.linkLibrary(duckdb_fmt);
+        // shell.linkLibrary(duckdb_fsst);
+        // shell.linkLibrary(duckdb_hyperloglog);
+        // shell.linkLibrary(duckdb_mbedtls);
+        // shell.linkLibrary(duckdb_miniz);
+        // shell.linkLibrary(duckdb_pg_query);
+        // shell.linkLibrary(duckdb_re2);
+        shell.linkLibrary(sqlite3_api_wrapper_static);
+        // shell.linkLibrary(duckdb_static);
+        // shell.linkLibrary(duckdb_utf8proc);
+        // shell.linkLibrary(parquet_extension);
+        // shell.linkLibrary(httpfs_extension);
+        // shell.linkLibrary(icu_extension);
+        // shell.linkLibC();
+        b.installArtifact(shell);
+    }
 
     // // ==============================
     // // Test
