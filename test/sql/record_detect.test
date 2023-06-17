@@ -1,0 +1,18 @@
+# name: test/sql/record_detect.test
+# description: test record_detect extension
+# group: [record_detect]
+
+# Before we load the extension, this will fail
+statement error
+SELECT record_detect('Sam');
+----
+Catalog Error: Scalar Function with name record_detect does not exist!
+
+# Require statement will ensure this test is run with this extension loaded
+require record
+
+# Confirm the extension works
+query I
+SELECT record_detect('Sam');
+----
+TODO: record_detect Sam 🐥
