@@ -114,6 +114,7 @@ pub fn build(b: *std.Build) void {
     duckdb_miniz.addCSourceFiles(&.{
         "duckdb/third_party/miniz/miniz.cpp",
     }, &.{});
+    duckdb_miniz.linkLibCpp();
     duckdb_miniz.force_pic = true;
     b.installArtifact(duckdb_miniz);
 
