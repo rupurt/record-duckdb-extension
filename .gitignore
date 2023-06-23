@@ -7,3 +7,6 @@ testext
 test/python/__pycache__/
 .Rhistory
 .clangd
+result
+zig-out
+zig-cache

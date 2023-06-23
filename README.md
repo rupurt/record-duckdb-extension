@@ -4,8 +4,16 @@ A DuckDB extension to read/write records from binary or text encoded files
 
 ## Development
 
+Use the official DuckDB `cmake` builder
+
 ```sh
 make
+```
+
+Or... use the experimental `nix` flake and `zig` builder within this repo
+
+```sh
+nix run .#build-fast
 ```
 
 ### analyze_record
