@@ -30,20 +30,20 @@
       packages = {
         zig-build-fast = pkgs.writeScriptBin "zig_build_fast" ''
           ${pkgs.zigpkgs.master}/bin/zig build \
-            -Dopenssl-include-dir=${pkgs.openssl.dev}/include \
             -Doptimize=ReleaseFast \
+            -Dopenssl-include-dir=${pkgs.openssl.dev}/include \
             -Dbuild-shell
         '';
         zig-build-small = pkgs.writeScriptBin "zig_build_small" ''
           ${pkgs.zigpkgs.master}/bin/zig build \
-            -Dopenssl-include-dir=${pkgs.openssl.dev}/include \
             -Doptimize=ReleaseSmall \
+            -Dopenssl-include-dir=${pkgs.openssl.dev}/include \
             -Dbuild-shell
         '';
         zig-build-debug = pkgs.writeScriptBin "zig_build_debug" ''
           ${pkgs.zigpkgs.master}/bin/zig build \
-            -Dopenssl-include-dir=${pkgs.openssl.dev}/include \
             -Doptimize=Debug \
+            -Dopenssl-include-dir=${pkgs.openssl.dev}/include \
             -Dbuild-shell
         '';
       };
