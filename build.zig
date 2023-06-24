@@ -190,24 +190,6 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(duckdb_mbedtls);
 
     // ==============================
-    // Custom Extension
-    // ==============================
-    const record_extension = b.addStaticLibrary(.{
-        .name = "record_extension",
-        .target = target,
-        .optimize = optimize,
-    });
-    record_extension.addCSourceFiles(&.{
-        "src/record_extension.cpp",
-    }, &.{});
-    record_extension.addIncludePath("src/include");
-    record_extension.addIncludePath("duckdb/src/include");
-    record_extension.addIncludePath("duckdb/third_party/re2");
-    record_extension.linkLibCpp();
-    record_extension.force_pic = true;
-    b.installArtifact(record_extension);
-
-    // ==============================
     // Lib
     // ==============================
     const duckdb_static = b.addStaticLibrary(.{
@@ -1363,37 +1345,63 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(duckdb_static);
 
     // ==============================
-    // Tools
-    // ==============================
-    const sqlite3_api_wrapper_static = b.addStaticLibrary(.{
-        .name = "sqlite3_api_wrapper_static",
-        .target = target,
-        .optimize = optimize,
-    });
-    sqlite3_api_wrapper_static.addCSourceFiles(&.{
-        "duckdb/tools/sqlite3_api_wrapper/sqlite3_api_wrapper.cpp",
-        // TODO:
-        // - only include for windows build
-        // "duckdb/tools/sqlite3_api_wrapper/sqlite3/os_win.c",
-        "duckdb/tools/sqlite3_api_wrapper/sqlite3/printf.c",
-        "duckdb/tools/sqlite3_api_wrapper/sqlite3/strglob.c",
-        "duckdb/tools/sqlite3_api_wrapper/sqlite3_udf_api/cast_sqlite.cpp",
-        "duckdb/tools/sqlite3_api_wrapper/sqlite3_udf_api/sqlite3_udf_wrapper.cpp",
-    }, &.{});
-    sqlite3_api_wrapper_static.addIncludePath("duckdb/tools/sqlite3_api_wrapper/include");
-    sqlite3_api_wrapper_static.addIncludePath("duckdb/tools/sqlite3_api_wrapper/sqlite3_udf_api/include");
-    sqlite3_api_wrapper_static.addIncludePath("duckdb/third_party/utf8proc/include");
-    sqlite3_api_wrapper_static.addIncludePath("duckdb/src/include");
-    sqlite3_api_wrapper_static.defineCMacro("USE_DUCKDB_SHELL_WRAPPER", null);
-    sqlite3_api_wrapper_static.linkLibrary(duckdb_static);
-    sqlite3_api_wrapper_static.linkLibrary(record_extension);
-    sqlite3_api_wrapper_static.force_pic = true;
-    b.installArtifact(sqlite3_api_wrapper_static);
-
-    // ==============================
-    // Shell
+    // CLI
     // ==============================
     if (want_build_shell) {
+        // const autocomplete_extension = b.addStaticLibrary(.{
+        //     .name = "autocomplete_extension",
+        //     .target = target,
+        //     .optimize = optimize,
+        // });
+        // autocomplete_extension.addCSourceFiles(&.{
+        //     "duckdb/extension/autocomplete/autocomplete_extension.cpp",
+        // }, &.{});
+        // autocomplete_extension.addIncludePath("duckdb/extension/autocomplete/include");
+        // // autocomplete_extension.addIncludePath("duckdb/extension/autocomplete/dbgen/include");
+        // // autocomplete_extension.addIncludePath("duckdb/src/include");
+        // // autocomplete_extension.addIncludePath("duckdb/extension/jemalloc/include");
+        // // autocomplete_extension.addIncludePath("duckdb/extension/jemalloc/jemalloc/include");
+        // autocomplete_extension.addIncludePath("duckdb/src/include");
+        // // autocomplete_extension.defineCMacro("SHELL_INLINE_AUTOCOMPLETE", null);
+        // // autocomplete_extension.linkLibrary(duckdb_static);
+        // autocomplete_extension.linkLibCpp();
+        // autocomplete_extension.force_pic = true;
+        // b.installArtifact(autocomplete_extension);
+
+        const sqlite3_api_wrapper_static = b.addStaticLibrary(.{
+            .name = "sqlite3_api_wrapper_static",
+            .target = target,
+            .optimize = optimize,
+        });
+        sqlite3_api_wrapper_static.addCSourceFiles(&.{
+            "duckdb/tools/sqlite3_api_wrapper/sqlite3_api_wrapper.cpp",
+            "duckdb/tools/sqlite3_api_wrapper/sqlite3/printf.c",
+            "duckdb/tools/sqlite3_api_wrapper/sqlite3/strglob.c",
+            "duckdb/tools/sqlite3_api_wrapper/sqlite3_udf_api/cast_sqlite.cpp",
+            "duckdb/tools/sqlite3_api_wrapper/sqlite3_udf_api/sqlite3_udf_wrapper.cpp",
+        }, &.{});
+        sqlite3_api_wrapper_static.addIncludePath("duckdb/tools/sqlite3_api_wrapper/include");
+        sqlite3_api_wrapper_static.addIncludePath("duckdb/tools/sqlite3_api_wrapper/sqlite3_udf_api/include");
+        sqlite3_api_wrapper_static.addIncludePath("duckdb/third_party/utf8proc/include");
+        sqlite3_api_wrapper_static.addIncludePath("duckdb/src/include");
+        sqlite3_api_wrapper_static.defineCMacro("USE_DUCKDB_SHELL_WRAPPER", null);
+        // // TODO:
+        // // - only include for windows build
+        // if (!target.isWindows()){
+        //     sqlite3_api_wrapper_static.addCSourceFiles(&.{
+        //         "duckdb/tools/sqlite3_api_wrapper/sqlite3/os_win.c",
+        //     }, &.{});
+        // }
+        sqlite3_api_wrapper_static.linkLibrary(duckdb_static);
+        // sqlite3_api_wrapper_static.addIncludePath("duckdb/extension/autocomplete/include");
+        // sqlite3_api_wrapper_static.defineCMacro("BUILD_AUTOCOMPLETE_EXTENSION", null);
+        // sqlite3_api_wrapper_static.defineCMacro("SHELL_INLINE_AUTOCOMPLETE", null);
+        // sqlite3_api_wrapper_static.linkLibrary(autocomplete_extension);
+        // sqlite3_api_wrapper_static.linkLibrary(record_extension);
+        // sqlite3_api_wrapper_static.linkLibCpp();
+        sqlite3_api_wrapper_static.force_pic = true;
+        b.installArtifact(sqlite3_api_wrapper_static);
+
         const shell = b.addExecutable(.{
             .name = "duckdb",
             .target = target,
@@ -1404,8 +1412,373 @@ pub fn build(b: *std.Build) void {
         }, &.{});
         shell.addIncludePath("duckdb/tools/shell/include");
         shell.addIncludePath("duckdb/tools/sqlite3_api_wrapper/include");
+        if (!target.isWindows()){
+            shell.addCSourceFiles(&.{
+                "duckdb/tools/shell/linenoise.cpp",
+            }, &.{});
+            shell.addIncludePath("duckdb/third_party/utf8proc/include");
+            shell.addIncludePath("duckdb/src/include");
+            shell.defineCMacro("HAVE_LINENOISE", "1");
+        }
         shell.linkLibrary(sqlite3_api_wrapper_static);
         shell.linkLibCpp();
         b.installArtifact(shell);
     }
+
+    // ==============================
+    // Loadable Extensions
+    // ==============================
+    // const icu_extension = b.addStaticLibrary(.{
+    //     .name = "icu_extension",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // icu_extension.addCSourceFiles(&.{
+    //     "duckdb/extension/icu/icu_extension.cpp",
+    //     "duckdb/extension/icu/icu-dateadd.cpp",
+    //     "duckdb/extension/icu/icu-datefunc.cpp",
+    //     "duckdb/extension/icu/icu-datepart.cpp",
+    //     "duckdb/extension/icu/icu-datesub.cpp",
+    //     "duckdb/extension/icu/icu-datetrunc.cpp",
+    //     "duckdb/extension/icu/icu-makedate.cpp",
+    //     "duckdb/extension/icu/icu-list-range.cpp",
+    //     "duckdb/extension/icu/icu-table-range.cpp",
+    //     "duckdb/extension/icu/icu-strptime.cpp",
+    //     "duckdb/extension/icu/icu-timebucket.cpp",
+    //     "duckdb/extension/icu/icu-timezone.cpp",
+    // }, &.{});
+    // icu_extension.addIncludePath("duckdb/extension/icu/include");
+    // icu_extension.addIncludePath("duckdb/extension/icu/third_party/icu/i18n");
+    // icu_extension.addIncludePath("duckdb/extension/icu/third_party/icu/common");
+    // // icu_extension.addIncludePath("duckdb/src/include");
+    // icu_extension.linkLibCpp();
+    // icu_extension.force_pic = true;
+    // b.installArtifact(icu_extension);
+
+    const parquet_extension = b.addStaticLibrary(.{
+        .name = "parquet_extension",
+        .target = target,
+        .optimize = optimize,
+    });
+    parquet_extension.addCSourceFiles(&.{
+        "duckdb/extension/parquet/column_writer.cpp",
+        "duckdb/extension/parquet/parquet_extension.cpp",
+        "duckdb/extension/parquet/parquet_metadata.cpp",
+        "duckdb/extension/parquet/parquet_reader.cpp",
+        "duckdb/extension/parquet/parquet_timestamp.cpp",
+        "duckdb/extension/parquet/parquet_writer.cpp",
+        "duckdb/extension/parquet/parquet_statistics.cpp",
+        "duckdb/extension/parquet/zstd_file_system.cpp",
+        "duckdb/extension/parquet/column_reader.cpp",
+        "duckdb/third_party/parquet/parquet_constants.cpp",
+        "duckdb/third_party/parquet/parquet_types.cpp",
+        "duckdb/third_party/thrift/thrift/protocol/TProtocol.cpp",
+        "duckdb/third_party/thrift/thrift/transport/TTransportException.cpp",
+        "duckdb/third_party/thrift/thrift/transport/TBufferTransports.cpp",
+        "duckdb/third_party/snappy/snappy.cc",
+        "duckdb/third_party/snappy/snappy-sinksource.cc",
+        "duckdb/third_party/zstd/decompress/zstd_ddict.cpp",
+        "duckdb/third_party/zstd/decompress/huf_decompress.cpp",
+        "duckdb/third_party/zstd/decompress/zstd_decompress.cpp",
+        "duckdb/third_party/zstd/decompress/zstd_decompress_block.cpp",
+        "duckdb/third_party/zstd/common/entropy_common.cpp",
+        "duckdb/third_party/zstd/common/fse_decompress.cpp",
+        "duckdb/third_party/zstd/common/zstd_common.cpp",
+        "duckdb/third_party/zstd/common/error_private.cpp",
+        "duckdb/third_party/zstd/common/xxhash.cpp",
+        "duckdb/third_party/zstd/compress/fse_compress.cpp",
+        "duckdb/third_party/zstd/compress/hist.cpp",
+        "duckdb/third_party/zstd/compress/huf_compress.cpp",
+        "duckdb/third_party/zstd/compress/zstd_compress.cpp",
+        "duckdb/third_party/zstd/compress/zstd_compress_literals.cpp",
+        "duckdb/third_party/zstd/compress/zstd_compress_sequences.cpp",
+        "duckdb/third_party/zstd/compress/zstd_compress_superblock.cpp",
+        "duckdb/third_party/zstd/compress/zstd_double_fast.cpp",
+        "duckdb/third_party/zstd/compress/zstd_fast.cpp",
+        "duckdb/third_party/zstd/compress/zstd_lazy.cpp",
+        "duckdb/third_party/zstd/compress/zstd_ldm.cpp",
+        "duckdb/third_party/zstd/compress/zstd_opt.cpp",
+    }, &.{});
+    parquet_extension.addIncludePath("duckdb/extension/parquet/include");
+    parquet_extension.addIncludePath("duckdb/third_party/parquet");
+    parquet_extension.addIncludePath("duckdb/third_party/snappy");
+    parquet_extension.addIncludePath("duckdb/third_party/miniz");
+    parquet_extension.addIncludePath("duckdb/third_party/thrift");
+    parquet_extension.addIncludePath("duckdb/third_party/zstd/include");
+    parquet_extension.addIncludePath("duckdb/src/include");
+    parquet_extension.addIncludePath("duckdb/third_party/utf8proc/include");
+    parquet_extension.addIncludePath("duckdb/third_party/re2");
+    parquet_extension.linkLibrary(duckdb_static);
+    parquet_extension.linkLibCpp();
+    parquet_extension.force_pic = true;
+    b.installArtifact(parquet_extension);
+
+    // const tpch_extension = b.addStaticLibrary(.{
+    //     .name = "tpch_extension",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // tpch_extension.addCSourceFiles(&.{
+    //     "duckdb/extension/tpch/tpch_extension.cpp",
+    // }, &.{});
+    // tpch_extension.addIncludePath("duckdb/extension/tpch/include");
+    // tpch_extension.addIncludePath("duckdb/extension/tpch/dbgen/include");
+    // // tpch_extension.addIncludePath("duckdb/src/include");
+    // tpch_extension.linkLibCpp();
+    // tpch_extension.force_pic = true;
+    // b.installArtifact(tpch_extension);
+    //
+    // const tpcds_extension = b.addStaticLibrary(.{
+    //     .name = "tpcds_extension",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // tpcds_extension.addCSourceFiles(&.{
+    //     "duckdb/extension/tpcds/tpcds_extension.cpp",
+    // }, &.{});
+    // tpcds_extension.addIncludePath("duckdb/extension/tpcds/include");
+    // // tpcds_extension.addIncludePath("duckdb/extension/tpcds/dbgen/include");
+    // // tpcds_extension.addIncludePath("duckdb/src/include");
+    // tpcds_extension.linkLibCpp();
+    // tpcds_extension.force_pic = true;
+    // b.installArtifact(tpcds_extension);
+    //
+    // const fts_extension = b.addStaticLibrary(.{
+    //     .name = "fts_extension",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // fts_extension.addCSourceFiles(&.{
+    //     "duckdb/extension/fts/fts_extension.cpp",
+    // }, &.{});
+    // fts_extension.addIncludePath("duckdb/extension/fts/include");
+    // // fts_extension.addIncludePath("duckdb/extension/fts/dbgen/include");
+    // // fts_extension.addIncludePath("duckdb/src/include");
+    // fts_extension.linkLibCpp();
+    // fts_extension.force_pic = true;
+    // b.installArtifact(fts_extension);
+    //
+    // const httpfs_extension = b.addStaticLibrary(.{
+    //     .name = "httpfs_extension",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // httpfs_extension.addCSourceFiles(&.{
+    //     "duckdb/extension/httpfs/httpfs-extension.cpp",
+    // }, &.{});
+    // // httpfs_extension.addIncludePath("duckdb/src/include");
+    // httpfs_extension.addIncludePath("duckdb/extension/httpfs/include");
+    // httpfs_extension.addIncludePath("duckdb/third_party/httplib");
+    // httpfs_extension.addIncludePath(want_openssl_include_dir);
+    // httpfs_extension.linkLibCpp();
+    // httpfs_extension.force_pic = true;
+    // b.installArtifact(httpfs_extension);
+    //
+    // const visualizer_extension = b.addStaticLibrary(.{
+    //     .name = "visualizer_extension",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // visualizer_extension.addCSourceFiles(&.{
+    //     "duckdb/extension/visualizer/visualizer_extension.cpp",
+    // }, &.{});
+    // visualizer_extension.addIncludePath("duckdb/extension/visualizer/include");
+    // // visualizer_extension.addIncludePath("duckdb/extension/visualizer/dbgen/include");
+    // // visualizer_extension.addIncludePath("duckdb/src/include");
+    // visualizer_extension.linkLibCpp();
+    // visualizer_extension.force_pic = true;
+    // b.installArtifact(visualizer_extension);
+    //
+    // const json_extension = b.addStaticLibrary(.{
+    //     .name = "json_extension",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // json_extension.addCSourceFiles(&.{
+    //     "duckdb/extension/json/json_extension.cpp",
+    // }, &.{});
+    // json_extension.addIncludePath("duckdb/extension/json/include");
+    // // json_extension.addIncludePath("duckdb/extension/json/dbgen/include");
+    // // json_extension.addIncludePath("duckdb/src/include");
+    // json_extension.linkLibCpp();
+    // json_extension.force_pic = true;
+    // b.installArtifact(json_extension);
+
+    // const jemalloc_extension = b.addStaticLibrary(.{
+    //     .name = "jemalloc_extension",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // jemalloc_extension.addCSourceFiles(&.{
+    //     "duckdb/extension/jemalloc/jemalloc_extension.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/arena.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/background_thread.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/base.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/bin.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/bin_info.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/bitmap.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/buf_writer.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/cache_bin.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/ckh.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/counter.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/ctl.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/decay.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/div.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/ecache.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/edata.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/edata_cache.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/ehooks.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/emap.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/eset.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/exp_grow.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/extent.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/extent_dss.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/extent_mmap.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/fxp.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/hook.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/hpa.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/hpa_hooks.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/hpdata.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/inspect.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/jemalloc.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/large.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/log.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/malloc_io.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/mutex.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/nstime.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/pa.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/pa_extra.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/pac.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/pages.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/pai.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/peak_event.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/prof.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/prof_data.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/prof_log.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/prof_recent.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/prof_stats.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/prof_sys.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/psset.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/rtree.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/safety_check.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/san.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/san_bump.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/sc.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/sec.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/stats.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/sz.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/tcache.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/test_hooks.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/thread_event.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/ticker.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/tsd.cpp",
+    //     "duckdb/extension/jemalloc/jemalloc/src/witness.cpp",
+    // }, &.{});
+    // jemalloc_extension.addIncludePath("duckdb/extension/jemalloc/include");
+    // jemalloc_extension.addIncludePath("duckdb/extension/jemalloc/jemalloc/include");
+    // jemalloc_extension.addIncludePath("duckdb/src/include");
+    // jemalloc_extension.linkLibrary(duckdb_static);
+    // // jemalloc_extension.linkLibC();
+    // // jemalloc_extension.linkLibCpp();
+    // jemalloc_extension.force_pic = true;
+    // b.installArtifact(jemalloc_extension);
+
+    // const excel_extension = b.addStaticLibrary(.{
+    //     .name = "excel_extension",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // excel_extension.addCSourceFiles(&.{
+    //     "duckdb/extension/excel/excel_extension.cpp",
+    // }, &.{});
+    // excel_extension.addIncludePath("duckdb/extension/excel/include");
+    // // excel_extension.addIncludePath("duckdb/extension/excel/dbgen/include");
+    // // excel_extension.addIncludePath("duckdb/src/include");
+    // excel_extension.linkLibCpp();
+    // excel_extension.force_pic = true;
+    // b.installArtifact(excel_extension);
+    //
+    // const sqlsmith_extension = b.addStaticLibrary(.{
+    //     .name = "sqlsmith_extension",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // sqlsmith_extension.addCSourceFiles(&.{
+    //     "duckdb/extension/sqlsmith/sqlsmith_extension.cpp",
+    // }, &.{});
+    // sqlsmith_extension.addIncludePath("duckdb/extension/sqlsmith/include");
+    // // sqlsmith_extension.addIncludePath("duckdb/extension/sqlsmith/dbgen/include");
+    // // sqlsmith_extension.addIncludePath("duckdb/src/include");
+    // sqlsmith_extension.linkLibCpp();
+    // sqlsmith_extension.force_pic = true;
+    // b.installArtifact(sqlsmith_extension);
+    //
+    // const inet_extension = b.addStaticLibrary(.{
+    //     .name = "inet_extension",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // inet_extension.addCSourceFiles(&.{
+    //     "duckdb/extension/inet/inet_extension.cpp",
+    // }, &.{});
+    // inet_extension.addIncludePath("duckdb/extension/inet/include");
+    // // inet_extension.addIncludePath("duckdb/extension/inet/dbgen/include");
+    // // inet_extension.addIncludePath("duckdb/src/include");
+    // inet_extension.linkLibCpp();
+    // inet_extension.force_pic = true;
+    // b.installArtifact(inet_extension);
+
+    // // ==============================
+    // // Custom Extension
+    // // ==============================
+    // const record_extension = b.addStaticLibrary(.{
+    //     .name = "record_extension",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // record_extension.addCSourceFiles(&.{
+    //     "src/record_extension.cpp",
+    // }, &.{});
+    // record_extension.addIncludePath("src/include");
+    // record_extension.addIncludePath("duckdb/src/include");
+    // record_extension.addIncludePath("duckdb/third_party/re2");
+    // record_extension.linkLibCpp();
+    // record_extension.force_pic = true;
+    // b.installArtifact(record_extension);
+
+    // // ==============================
+    // // Test
+    // // ==============================
+    // const unittest = b.addExecutable(.{
+    //     .name = "unittest",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // unittest.addCSourceFiles(&.{
+    //     "duckdb/test/unittest.cpp",
+    // }, &.{});
+    // unittest.addIncludePath("duckdb/third_party/catch");
+    // unittest.addIncludePath("duckdb/src/include");
+    // unittest.addIncludePath("duckdb/test/include");
+    // unittest.defineCMacro( "DUCKDB_ROOT_DIRECTORY" , "\"/home/alex/workspace/rupurt/record-duckdb-extension/duckdb/unittest\"");
+    // unittest.linkLibCpp();
+    // b.installArtifact(unittest);
+
+    // ==============================
+    // Examples
+    // ==============================
+    const imdb = b.addStaticLibrary(.{
+        .name = "imdb",
+        .target = target,
+        .optimize = optimize,
+    });
+    imdb.addCSourceFiles(&.{
+        "duckdb/third_party/imdb/imdb.cpp",
+    }, &.{});
+    imdb.addIncludePath("duckdb/third_party/imdb/include");
+    imdb.addIncludePath("duckdb/src/include");
+    imdb.linkLibCpp();
+    // imdb.force_pic = true;
+    // imdb.strip = true;
+    b.installArtifact(imdb);
 }

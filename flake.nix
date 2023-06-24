@@ -23,6 +23,7 @@
         inherit system;
         overlays = [
           zig-overlay.overlays.default
+          self.overlay
         ];
       };
     in rec {
@@ -46,6 +47,7 @@
             -Dopenssl-include-dir=${pkgs.openssl.dev}/include \
             -Dbuild-shell
         '';
+        default = pkgs.record-duckdb-extension {};
       };
 
       # nix run
@@ -77,5 +79,12 @@
       };
     });
   in
-    outputs;
+    outputs
+    // {
+      # Overlay that can be imported so you can access the packages
+      # using record-duckdb-extension.overlay
+      overlay = final: prev: {
+        record-duckdb-extension = prev.pkgs.callPackage ./default.nix {};
+      };
+    };
 }
